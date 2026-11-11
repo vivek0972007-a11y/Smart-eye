@@ -1,0 +1,189 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Eye AI</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#080d18;color:white;
+ font-family:Arial,sans-serif;
+}
+header{
+ padding:22px 18px;background:#111a2c;
+ border-bottom:1px solid #26334a;
+ display:flex;align-items:center;gap:12px;
+}
+.logo{
+ width:43px;height:43px;border-radius:14px;
+ background:linear-gradient(135deg,#00d9ff,#735cff);
+ display:grid;place-items:center;font-size:24px;
+}
+header h2{margin:0;font-size:21px}
+header small{color:#43e6b0}
+main{max-width:700px;margin:auto;padding:18px}
+.welcome{text-align:center;margin:45px 0 30px}
+.welcome h1{font-size:29px}
+.welcome p{color:#9eacc4}
+#chat{
+ display:flex;flex-direction:column;gap:14px;
+ padding-bottom:130px;
+}
+.msg{
+ max-width:88%;padding:13px 16px;
+ border-radius:17px;line-height:1.5;
+ white-space:pre-wrap;overflow-wrap:anywhere;
+}
+.user{
+ align-self:flex-end;background:#3157d5;
+ border-bottom-right-radius:4px;
+}
+.bot{
+ align-self:flex-start;background:#17243a;
+ border:1px solid #293b57;
+ border-bottom-left-radius:4px;
+}
+.controls{
+ position:fixed;bottom:0;left:0;right:0;
+ padding:14px;background:#0c1423;
+ border-top:1px solid #26334a;
+}
+.inputbox{
+ max-width:700px;margin:auto;display:flex;
+ gap:8px;align-items:center;
+}
+input{
+ flex:1;min-width:0;padding:15px;
+ border-radius:25px;border:1px solid #354766;
+ background:#17243a;color:white;font-size:16px;
+ outline:none;
+}
+button{
+ border:0;border-radius:50%;width:48px;height:48px;
+ background:#3157d5;color:white;font-size:20px;
+ cursor:pointer;
+}
+button:active{transform:scale(.95)}
+#mic{background:#263c5c}
+.note{
+ text-align:center;color:#8493aa;
+ font-size:11px;margin-top:9px;
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">👁️</div>
+ <div>
+  <h2>Smart Eye AI</h2>
+  <small>● Assistant ready</small>
+ </div>
+</header>
+
+<main>
+ <div class="welcome" id="welcome">
+  <h1>Hello! 👋</h1>
+  <p>Welcome to Smart Eye AI.<br>
+  Type or speak to start chatting.</p>
+ </div>
+ <div id="chat"></div>
+</main>
+
+<div class="controls">
+ <div class="inputbox">
+  <button id="mic" onclick="startVoice()" title="Speak">🎙️</button>
+  <input id="message" placeholder="Ask Smart Eye anything..."
+   onkeydown="if(event.key==='Enter')sendMessage()">
+  <button onclick="sendMessage()" title="Send">➤</button>
+ </div>
+ <div class="note">Smart Eye AI • Voice + Typing</div>
+</div>
+
+<script>
+const chat=document.getElementById("chat");
+
+function addMessage(text,type){
+ const div=document.createElement("div");
+ div.className="msg "+type;
+ div.textContent=text;
+ chat.appendChild(div);
+ window.scrollTo(0,document.body.scrollHeight);
+}
+
+function speak(text){
+ if(!("speechSynthesis" in window))return;
+ speechSynthesis.cancel();
+ const speech=new SpeechSynthesisUtterance(text);
+ speech.lang="hi-IN";
+ speech.rate=1;
+ speechSynthesis.speak(speech);
+}
+
+// Temporary demo reply.
+// Real AI will be connected through a secure backend.
+async function getAIReply(question){
+ const q=question.toLowerCase();
+
+ if(q.includes("hello")||q.includes("hi")||q.includes("namaste"))
+  return "Namaste! Main Smart Eye hoon. Bataiye, main aapki kya madad kar sakta hoon?";
+
+ if(q.includes("naam")||q.includes("name"))
+  return "Mera naam Smart Eye AI hai!";
+
+ if(q.includes("kaise ho"))
+  return "Main bilkul badhiya hoon! Aap kaise hain?";
+
+ return "Aapka sawal mil gaya: "+question+
+ "\n\nAbhi Smart Eye demo mode mein hai. Real AI jawab ke liye secure AI connection jodna baaki hai.";
+}
+
+async function sendMessage(){
+ const input=document.getElementById("message");
+ const question=input.value.trim();
+ if(!question)return;
+
+ document.getElementById("welcome").style.display="none";
+ input.value="";
+ addMessage(question,"user");
+
+ const loading=document.createElement("div");
+ loading.className="msg bot";
+ loading.textContent="Smart Eye soch raha hai...";
+ chat.appendChild(loading);
+
+ try{
+  const answer=await getAIReply(question);
+  loading.textContent=answer;
+ }catch(error){
+  loading.textContent="Sorry, kuch problem aa gayi.";
+ }
+ window.scrollTo(0,document.body.scrollHeight);
+}
+
+function startVoice(){
+ const SpeechRecognition=
+  window.SpeechRecognition||window.webkitSpeechRecognition;
+
+ if(!SpeechRecognition){
+  alert("Voice typing is browser mein supported nahi hai. Chrome try karein.");
+  return;
+ }
+
+ const recognition=new SpeechRecognition();
+ recognition.lang="hi-IN";
+ recognition.interimResults=false;
+ recognition.onresult=function(event){
+  document.getElementById("message").value=
+   event.results[0][0].transcript;
+  sendMessage();
+ };
+ recognition.onerror=function(){
+  alert("Voice nahi samajh aayi. Dobara try karein.");
+ };
+ recognition.start();
+}
+</script>
+</body>
+</html>
